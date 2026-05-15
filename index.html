@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Farmacia Corsetti – Telemedicina e Prodotti Luxury</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Display:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,700;1,800&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Noto Sans Display', sans-serif; background: #fff; color: #1a2332; -webkit-font-smoothing: antialiased; }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-thumb { background: #c5d8ea; border-radius: 3px; }
+
+  /* ── RESPONSIVE ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .grid-4-luxury { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+  .grid-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; position: relative; z-index: 1; }
+  .grid-cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; margin-top: 28px; }
+  .grid-services-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .nav-desktop { display: flex; }
+  .nav-mobile { display: none; }
+  .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+  .step-connector { position: absolute; top: 28px; left: 12.5%; right: 12.5%; height: 1.5px; background: linear-gradient(90deg, rgba(26,126,200,0.3), rgba(26,126,200,0.6), rgba(26,126,200,0.3)); }
+
+  @media (max-width: 900px) {
+    .grid-2, .hero-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+    .grid-3 { grid-template-columns: 1fr 1fr !important; }
+    .grid-4, .grid-4-luxury { grid-template-columns: 1fr 1fr !important; }
+    .grid-steps { grid-template-columns: 1fr 1fr !important; }
+    .step-connector { display: none; }
+    .grid-services-2col { grid-template-columns: 1fr 1fr !important; }
+  }
+
+  @media (max-width: 600px) {
+    .grid-2, .hero-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+    .grid-3 { grid-template-columns: 1fr !important; }
+    .grid-4, .grid-4-luxury { grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
+    .grid-steps { grid-template-columns: 1fr !important; }
+    .grid-cats { grid-template-columns: 1fr 1fr !important; }
+    .grid-services-2col { grid-template-columns: 1fr !important; }
+    .nav-desktop { display: none !important; }
+    .nav-mobile { display: flex !important; }
+    .hero-right-hide { display: none !important; }
+    .hide-mobile { display: none !important; }
+    .stat-row { gap: 20px !important; }
+    .section-pad { padding: 48px 18px !important; }
+    .hero-pad { padding: 48px 18px 56px !important; }
+    .cta-strip { flex-direction: column !important; gap: 20px !important; align-items: flex-start !important; }
+    .contact-grid { grid-template-columns: 1fr !important; }
+    .footer-grid { grid-template-columns: 1fr 1fr !important; }
+  }
+
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "blue": "#1a7ec8",
+  "darkBg": "#0e1c2f"
+}/*EDITMODE-END*/;
+
+const PRODUCT_IMG = 'https://www.farmaciacorsetti.it/immagine.php?src=seaweed-scrub.png&w=396&h=396';
+
+// ── RESPONSIVE HOOK ──────────────────────────────────────────────────────────
+function useResponsive() {
+  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+  useEffect(() => {
+    const fn = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
+  return { isMobile: width < 600, isTablet: width < 900, width };
+}
+
+const LUXURY_PRODUCTS = [
+  { cat: 'CORPO', name: 'Water Breeze Shower Gel', desc: 'Gel doccia rinfrescante con profumo delicato', img: PRODUCT_IMG },
+  { cat: 'VISO', name: 'Rose Global Age', desc: 'Crema globale anti-age con rosa canina, acido ialuronico e vitamina B12', img: PRODUCT_IMG },
+  { cat: 'VISO E CORPO', name: 'Seaweed Scrub', desc: 'Scrub rigenerante alle alghe marine, delicato e nutritivo', img: PRODUCT_IMG },
+  { cat: 'CAPELLI', name: 'Sublime Hair Shampoo', desc: 'Shampoo nutriente per capelli morbidi e luminosi', img: PRODUCT_IMG },
+  { cat: 'VISO', name: 'Hydra Boost Serum', desc: 'Siero idratante con acido ialuronico a tre pesi molecolari', img: PRODUCT_IMG },
+  { cat: 'CORPO', name: 'Velvet Body Cream', desc: 'Crema corpo setosa con burro di karité e vitamina E', img: PRODUCT_IMG },
+];
+
+const NAV_PAGES = ['home', 'telemedicina', 'prodotti', 'laboratorio', 'eventi', 'test', 'contatti'];
+const NAV_LABELS = { home: 'Home', telemedicina: 'Esami e diagnostica', prodotti: 'Corsetti Luxury', laboratorio: 'Laboratorio', eventi: 'Eventi', test: 'Test', contatti: 'Contatti' };
+
+// ── MENU DINAMICO DA menu.json ───────────────────────────────────────────────
+function useMenu() {
+  const [voci, setVoci] = React.useState(
+    NAV_PAGES.map(p => ({ id: p, label: NAV_LABELS[p], attiva: true }))
+  );
+  React.useEffect(() => {
+    fetch('/menu.json')
+      .then(r => r.json())
+      .then(data => {
+        const attive = data.filter(v => v.attiva).map(v => ({
+          id: v.id,
+          label: v.label,
+          attiva: true
+        }));
+        if (attive.length > 0) setVoci(attive);
+      })
+      .catch(() => {});
+  }, []);
+  return voci;
+}
+
+
+// ── HEADER ──────────────────────────────────────────────────────────────────
+function Header({ page, setPage, blue, menuVoci = [] }) {
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const { isMobile } = useResponsive();
+
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 8);
+    window.addEventListener('scroll', fn);
+    return () => window.removeEventListener('scroll', fn);
+  }, []);
+
+const navigate = (p) => {
+    if (p === 'eventi') { window.location.href = '/eventi.php'; return; }
+    if (p === 'test') { window.location.href = '/test'; return; }
+    setPage(p); setMenuOpen(false); window.scrollTo(0,0);
+};
+
+  return (
+    <header style={{
+      position: 'sticky', top: 0, zIndex: 200, background: '#fff',
+      borderBottom: scrolled ? '1px solid #e8eff7' : '1px solid #f0f5fb',
+      boxShadow: scrolled ? '0 2px 16px rgba(26,126,200,0.08)' : 'none',
+      transition: 'all 0.3s',
+    }}>
+      <div style={{ maxWidth: 1180, margin: '0 auto', padding: '0 20px', display: 'flex', alignItems: 'center', height: 62, gap: 12 }}>
+        <button onClick={() => navigate('home')} style={{ background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+          <img src="corsetti-logo.png" alt="Farmacia Corsetti"
+            style={{ height: 46, objectFit: 'contain' }}
+            onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }}
+          />
+          <span style={{ display:'none', alignItems:'center', gap:6 }}>
+            <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="10" stroke={blue} strokeWidth="2"/><path d="M7 11h8M11 7v8" stroke={blue} strokeWidth="2" strokeLinecap="round"/></svg>
+            <span style={{ fontSize:14, color:'#1a2332' }}>Farmacia Corsetti</span>
+          </span>
+        </button>
+
+        {!isMobile && (
+          <nav style={{ flex: 1, display: 'flex', gap: 2 }}>
+            {menuVoci.map(v => (
+              <button key={v.id} onClick={() => navigate(v.id)} style={{
+                background: page===v.id ? `${blue}12` : 'transparent', border:'none', cursor:'pointer',
+                padding:'6px 13px', borderRadius:7, fontSize:13.5,
+                color: page===v.id ? blue : '#4a5f75', fontFamily:'Noto Sans Display', transition:'all 0.18s',
+              }}
+                onMouseEnter={e => { if(page!==v.id) e.currentTarget.style.background='#f3f7fc'; }}
+                onMouseLeave={e => { if(page!==v.id) e.currentTarget.style.background='transparent'; }}
+              >{v.label}</button>
+            ))}
+          </nav>
+        )}
+
+        <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:10 }}>
+          {!isMobile && (
+            <button onClick={() => navigate('contatti')} style={{
+              background:blue, color:'#fff', border:'none', cursor:'pointer',
+              padding:'8px 22px', borderRadius:8, fontSize:13.5,
+              fontFamily:'Noto Sans Display', boxShadow:`0 2px 10px ${blue}44`, transition:'opacity 0.2s',
+            }}
+              onMouseEnter={e => e.currentTarget.style.opacity='0.88'}
+              onMouseLeave={e => e.currentTarget.style.opacity='1'}
+            >Chiedi al farmacista</button>
+          )}
+          {isMobile && (
+            <button onClick={() => setMenuOpen(o => !o)} style={{
+              background:'none', border:'none', cursor:'pointer', padding:8,
+              display:'flex', flexDirection:'column', gap:5,
+            }}>
+              {[0,1,2].map(i => (
+                <span key={i} style={{
+                  display:'block', width:22, height:1.5, background:'#1a2332', borderRadius:1, transition:'all 0.25s',
+                  transform: menuOpen ? (i===0?'rotate(45deg) translate(4px,4px)':i===2?'rotate(-45deg) translate(4px,-4px)':'scaleX(0)') : 'none',
+                  opacity: (menuOpen && i===1) ? 0 : 1,
+                }} />
+              ))}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {isMobile && menuOpen && (
+        <div style={{ background:'#fff', borderTop:'1px solid #edf2f7', padding:'12px 20px 20px', display:'flex', flexDirection:'column', gap:4, boxShadow:'0 8px 24px rgba(0,0,0,0.08)' }}>
+          {menuVoci.map(v => (
+            <button key={v.id} onClick={() => navigate(v.id)} style={{
+              background: page===v.id ? `${blue}10` : 'none', border:'none', cursor:'pointer',
+              padding:'12px 14px', borderRadius:9, fontSize:15, textAlign:'left',
+              color: page===v.id ? blue : '#1a2332', fontFamily:'Noto Sans Display',
+            }}>{v.label}</button>
+          ))}
+          <button onClick={() => navigate('contatti')} style={{
+            background:blue, color:'#fff', border:'none', cursor:'pointer',
+            padding:'12px', borderRadius:9, fontSize:14, marginTop:8, fontFamily:'Noto Sans Display',
+          }}>Prenota ora</button>
+        </div>
+      )}
+    </header>
+  );
+}
+
+// ── HERO ─────────────────────────────────────────────────────────────────────
+function Hero({ setPage, blue }) {
+  const { isMobile, isTablet } = useResponsive();
+  return (
+    <section style={{
+      background: 'linear-gradient(160deg, #edf7fa 0%, #e8f5f9 45%, #f2fafb 100%)',
+      padding: isMobile ? '40px 18px 52px' : '72px 28px 80px', overflow: 'hidden', position: 'relative',
+    }}>
+      <div style={{ maxWidth: 1180, margin: '0 auto', display: 'grid', gridTemplateColumns: isTablet ? '1fr' : '1fr 1fr', gap: isTablet ? 28 : 40, alignItems: 'center' }}>
+
+        {/* LEFT */}
+        <div>
+          {/* Pill badge */}
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(26,126,200,0.18)',
+            borderRadius: 20, padding: '6px 14px', marginBottom: 28,
+          }}>
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+              <path d="M7 12.5S1.5 9 1.5 5a3.5 3.5 0 0 1 7 0 3.5 3.5 0 0 1 3.5-3.5" stroke={blue} strokeWidth="1.4" strokeLinecap="round"/>
+              <path d="M7 12.5S12.5 9 12.5 5a5.5 5.5 0 0 0-11 0c0 4 5.5 7.5 5.5 7.5z" stroke={blue} strokeWidth="1.2" fill="none"/>
+            </svg>
+            <span style={{ fontSize: 12.5, color: blue, fontWeight: 400 }}>La tua salute, la nostra missione</span>
+          </div>
+
+          <h1 style={{ fontSize: 'clamp(40px, 5vw, 58px)', fontWeight: 400, lineHeight: 1.08, letterSpacing: '-0.035em', color: '#0f1e2d', marginBottom: 4 }}>
+            Telemedicina
+          </h1>
+          <h1 style={{ fontSize: 'clamp(40px, 5vw, 58px)', fontWeight: 400, lineHeight: 1.08, letterSpacing: '-0.035em', fontStyle: 'italic', color: blue, marginBottom: 24 }}>
+            al tuo servizio
+          </h1>
+
+          <p style={{ fontSize: 15.5, color: '#4a6070', lineHeight: 1.72, maxWidth: 420, marginBottom: 36 }}>
+            Farmacia Corsetti offre servizi diagnostici avanzati direttamente in farmacia. Holter ECG, consulenze mediche online e analisi del sangue con referti rapidi e professionali.
+          </p>
+
+          <div style={{ display: 'flex', gap: 12, marginBottom: 52, flexWrap: 'wrap' }}>
+            <button onClick={() => setPage('telemedicina')} style={{
+              background: blue, color: '#fff', border: 'none', cursor: 'pointer',
+              padding: '13px 26px', borderRadius: 9, fontSize: 14, fontWeight: 400, fontFamily: 'Noto Sans Display',
+              display: 'flex', alignItems: 'center', gap: 8,
+              boxShadow: `0 4px 20px ${blue}50`, transition: 'transform 0.2s, box-shadow 0.2s',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 8px 28px ${blue}60`; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 4px 20px ${blue}50`; }}
+            >
+              Scopri i Servizi
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
+            <button onClick={() => setPage('contatti')} style={{
+              background: '#fff', color: '#1a2332',
+              border: '1.5px solid rgba(26,126,200,0.22)',
+              cursor: 'pointer', padding: '13px 26px', borderRadius: 9, fontSize: 14, fontWeight: 400,
+              fontFamily: 'Noto Sans Display', transition: 'border-color 0.2s, box-shadow 0.2s',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = blue; e.currentTarget.style.boxShadow = `0 4px 16px ${blue}22`; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(26,126,200,0.22)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; }}
+            >Prenota Appuntamento</button>
+          </div>
+
+          {/* Stats */}
+          <div style={{ display: 'flex', gap: 40 }}>
+            {[{ v: '25+', l: 'Anni di esperienza' }, { v: '10k+', l: 'Clienti soddisfatti' }, { v: '15+', l: 'Servizi offerti' }].map((s, i) => (
+              <div key={i}>
+                <div style={{ fontSize: 26, fontWeight: 400, color: '#0f1e2d', letterSpacing: '-0.03em' }}>{s.v}</div>
+                <div style={{ fontSize: 12, color: '#8aa4b8', marginTop: 3 }}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* RIGHT — big white circle + stethoscope + floating badges */}
+        {!isTablet && <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 420 }}>
+          {/* Large white circle */}
+          <div style={{
+            width: 380, height: 380, borderRadius: '50%',
+            background: '#fff',
+            boxShadow: '0 20px 80px rgba(26,126,200,0.13), 0 4px 24px rgba(0,0,0,0.05)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            position: 'relative',
+          }}>
+            <img src="stethoscope.png" alt="Stetoscopio" style={{ width: 170, height: 170, objectFit: 'contain' }} />
+          </div>
+
+          {/* Badge: Holter ECG — top */}
+          <div style={{
+            position: 'absolute', top: 28, left: '50%', transform: 'translateX(-10px)',
+            background: '#fff', borderRadius: 12, padding: '10px 16px',
+            boxShadow: '0 6px 24px rgba(26,126,200,0.14)',
+            border: '1px solid rgba(26,126,200,0.1)',
+            minWidth: 140,
+          }}>
+            <div style={{ fontSize: 20, color: '#0f1e2d' }}>Holter ECG</div>
+            <div style={{ fontSize: 15, color: '#8aa4b8', marginTop: 3 }}>24h monitoraggio</div>
+          </div>
+
+          {/* Badge: Analisi Sangue — left, blue filled */}
+          <div style={{
+            position: 'absolute', bottom: 110, left: 0,
+            background: blue, borderRadius: 12, padding: '10px 16px',
+            boxShadow: `0 6px 24px ${blue}50`,
+            minWidth: 140,
+          }}>
+            <div style={{ fontSize: 20, color: '#fff' }}>Analisi Sangue</div>
+            <div style={{ fontSize: 15, color: 'rgba(255,255,255,0.75)', marginTop: 3 }}>Referti in 24h</div>
+          </div>
+
+          {/* Badge: Consulenze Online — bottom right */}
+          <div style={{
+            position: 'absolute', bottom: 32, right: -8,
+            background: '#fff', borderRadius: 12, padding: '10px 16px',
+            boxShadow: '0 6px 24px rgba(26,126,200,0.14)',
+            border: '1px solid rgba(26,126,200,0.1)',
+            minWidth: 150,
+          }}>
+            <div style={{ fontSize: 20, color: '#0f1e2d' }}>Consulenze Online</div>
+            <div style={{ fontSize: 15, color: '#8aa4b8', marginTop: 3 }}>Video con specialisti</div>
+          </div>
+        </div>}
+
+      </div>
+    </section>
+  );
+}
+
+// ── TELEMEDICINA CARDS ───────────────────────────────────────────────────────
+function TelemedCards({ blue }) {
+  const { isMobile, isTablet } = useResponsive();
+  const items = [
+    {
+      icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 4C8.5 4 4 8.5 4 14s4.5 10 10 10 10-4.5 10-10S19.5 4 14 4z" stroke="currentColor" strokeWidth="1.8"/><path d="M14 9v5.5l4 2.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>,
+      title: 'Consulti Specialistici',
+      desc: 'Accedi a specialisti in cardiologia, dermatologia, nutrizionismo e molte altre discipline direttamente da casa.',
+    },
+    {
+      icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="4" y="7" width="20" height="16" rx="3" stroke="currentColor" strokeWidth="1.8"/><path d="M10 7V5a4 4 0 0 1 8 0v2" stroke="currentColor" strokeWidth="1.8"/><path d="M10 16h8M14 12v8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>,
+      title: 'Diagnostica Avanzata',
+      desc: 'Holter ECG 24h, Holter Pressorio, saturimetria e spirometria con refertazione medica certificata.',
+    },
+    {
+      icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 4l2.5 5 5.5.8-4 3.9.9 5.5L14 17l-4.9 2.6.9-5.5-4-3.9 5.5-.8L14 4z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/></svg>,
+      title: 'Prevenzione & Salute',
+      desc: 'Programmi di prevenzione personalizzati, check-up completi e monitoraggio continuo dei parametri vitali.',
+    },
+  ];
+
+  return (
+    <section style={{ background: '#f7fbff', padding: '72px 28px' }}>
+      <div style={{ maxWidth: 1180, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 48 }}>
+          <h2 style={{ fontSize: 34, fontWeight: 400, letterSpacing: '-0.025em', color: '#1a2332', marginBottom: 12 }}>
+            Telemedicina e<br />diagnostica avanzata
+          </h2>
+          <p style={{ color: '#7090a8', fontSize: 16, maxWidth: 480, margin: '0 auto', lineHeight: 1.65 }}>
+            Servizi sanitari di alta qualità, accessibili comodamente da remoto o direttamente in farmacia.
+          </p>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : 'repeat(3, 1fr)', gap: 16 }}>
+          {items.map((item, i) => (
+            <div key={i} style={{
+              background: i === 0 ? blue : '#fff',
+              borderRadius: 16, padding: '32px 28px',
+              boxShadow: i === 0 ? `0 8px 32px ${blue}30` : '0 2px 12px rgba(0,0,0,0.04)',
+              border: i === 0 ? 'none' : '1px solid #e8f0f8',
+              transition: 'transform 0.22s, box-shadow 0.22s',
+              cursor: 'default',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = i === 0 ? `0 14px 40px ${blue}40` : '0 8px 28px rgba(26,126,200,0.12)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = i === 0 ? `0 8px 32px ${blue}30` : '0 2px 12px rgba(0,0,0,0.04)'; }}
+            >
+              <div style={{ color: i === 0 ? '#fff' : blue, marginBottom: 18 }}>{item.icon}</div>
+              <h3 style={{ fontSize: 17, fontWeight: 400, color: i === 0 ? '#fff' : '#1a2332', marginBottom: 10, lineHeight: 1.3 }}>{item.title}</h3>
+              <p style={{ fontSize: 14, color: i === 0 ? 'rgba(255,255,255,0.82)' : '#6a8090', lineHeight: 1.65 }}>{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── HOLTER FEATURE ───────────────────────────────────────────────────────────
+function HolterFeature({ blue }) {
+  const { isMobile, isTablet } = useResponsive();
+  return (
+    <section style={{ padding: isMobile ? '40px 18px' : '72px 28px', background: '#fff' }}>
+      <div style={{ maxWidth: 1180, margin: '0 auto', display: 'grid', gridTemplateColumns: isTablet ? '1fr' : '1fr 1fr', gap: 40, alignItems: 'center' }}>
+        <div>
+          <p style={{ fontSize: 11, fontWeight: 400, color: blue, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 14 }}>Diagnostica cardiologica</p>
+          <h2 style={{ fontSize: 30, fontWeight: 400, letterSpacing: '-0.025em', color: '#1a2332', marginBottom: 16, lineHeight: 1.2 }}>Holter 24 ore<br />/ Pressione</h2>
+          <p style={{ color: '#6a8090', fontSize: 15, lineHeight: 1.7, marginBottom: 24 }}>
+            Monitoraggio continuo dell'attività cardiaca e pressoria nelle 24 ore. Refertazione medica specialistica inclusa, disponibile in farmacia senza prenotazione.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 28 }}>
+            {['Elettrocardiogramma a riposo', 'Holter ECG 24h con refertazione', 'Holter pressorio 24h', 'Spirometria e saturimetria'].map((s, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 14, color: '#3a5068' }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: blue, flexShrink: 0 }} />
+                {s}
+              </div>
+            ))}
+          </div>
+          <button style={{
+            background: blue, color: '#fff', border: 'none', cursor: 'pointer',
+            padding: '11px 24px', borderRadius: 8, fontSize: 13.5, fontWeight: 400,
+            fontFamily: 'Noto Sans Display', boxShadow: `0 3px 14px ${blue}44`,
+          }}>Prenota ora</button>
+        </div>
+
+        {/* Waveform graphic */}
+        <div style={{
+          background: 'linear-gradient(135deg, #eaf5ff 0%, #f0f8ff 100%)',
+          borderRadius: 20, padding: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 280,
+          border: '1px solid #daedf9',
+        }}>
+          <svg width="320" height="140" viewBox="0 0 320 140" fill="none">
+            <path d="M0 70 L30 70 L45 30 L60 110 L75 20 L90 120 L105 50 L115 70 L145 70 L160 70 L175 35 L190 105 L205 25 L220 115 L235 55 L245 70 L275 70 L290 70 L320 70"
+              stroke={blue} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.8"/>
+            <path d="M0 70 L30 70 L45 30 L60 110 L75 20 L90 120 L105 50 L115 70 L320 70"
+              stroke={`${blue}20`} strokeWidth="1" fill={`${blue}08`}/>
+            <circle cx="75" cy="20" r="4" fill={blue} opacity="0.6"/>
+            <line x1="75" y1="20" x2="75" y2="130" stroke={blue} strokeWidth="1" strokeDasharray="3 3" opacity="0.3"/>
+          </svg>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── TRADITION ────────────────────────────────────────────────────────────────
+function Tradition({ blue }) {
+  const { isMobile, isTablet } = useResponsive();
+  return (
+    <section style={{ padding: isMobile ? '40px 18px' : '72px 28px', background: '#f7fbff' }}>
+      <div style={{ maxWidth: 1180, margin: '0 auto', display: 'grid', gridTemplateColumns: isTablet ? '1fr' : '1fr 1fr', gap: 48, alignItems: 'center' }}>
+        <div>
+          <p style={{ fontSize: 11, fontWeight: 400, color: blue, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 14 }}>La nostra storia</p>
+          <h2 style={{ fontSize: 34, fontWeight: 400, letterSpacing: '-0.025em', color: '#1a2332', marginBottom: 20, lineHeight: 1.2 }}>
+            Una tradizione di<br />cura e innovazione
+          </h2>
+          <p style={{ color: '#6a8090', fontSize: 15, lineHeight: 1.75, marginBottom: 28 }}>
+            Situata nel cuore dell'EUR a Roma, la Farmacia Corsetti è da oltre 30 anni un punto di riferimento per la salute del quartiere. Coniughiamo la tradizione farmaceutica con le più avanzate tecnologie di diagnostica e telemedicina.
+          </p>
+          <p style={{ color: '#6a8090', fontSize: 15, lineHeight: 1.75, marginBottom: 32 }}>
+            Il nostro laboratorio galenico è tra i più attrezzati di Roma, con preparatori specializzati in pediatria, veterinaria e oftalmologia.
+          </p>
+          <div style={{ display: 'flex', gap: 32 }}>
+            {[{ v: '30+', l: 'anni' }, { v: '50k+', l: 'clienti' }, { v: '2', l: 'sedi' }].map((s, i) => (
+              <div key={i}>
+                <div style={{ fontSize: 22, fontWeight: 400, color: '#1a2332' }}>{s.v}</div>
+                <div style={{ fontSize: 12, color: '#8aa0b4', marginTop: 2 }}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Big number graphic */}
+        <div style={{
+          background: '#fff', borderRadius: 20, border: '1px solid #e0edf7',
+          padding: '48px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8,
+          position: 'relative', overflow: 'hidden',
+        }}>
+          <div style={{ position: 'absolute', top: -60, right: -60, width: 200, height: 200, borderRadius: '50%', background: `${blue}08` }} />
+          <div style={{ position: 'absolute', bottom: -40, left: -40, width: 150, height: 150, borderRadius: '50%', background: `${blue}06` }} />
+          <div style={{ fontSize: 88, fontWeight: 400, letterSpacing: '-0.05em', color: `${blue}`, lineHeight: 1, position: 'relative' }}>251</div>
+          <div style={{ fontSize: 14, color: '#8aa0b4', position: 'relative', textAlign: 'center' }}>clienti al giorno</div>
+          <div style={{ fontSize: 12, color: '#b0c4d4', position: 'relative', textAlign: 'center' }}>in media — Sede EUR</div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── CORSETTI LUXURY (dark) ───────────────────────────────────────────────────
+function CorsettiLuxury({ darkBg, blue }) {
+  const { isMobile, isTablet } = useResponsive();
+  const [current, setCurrent] = useState(0);
+  const visible = isMobile ? 2 : isTablet ? 2 : 4;
+  const total = LUXURY_PRODUCTS.length;
+  const canPrev = current > 0;
+  const canNext = current + visible < total;
+
+  return (
+    <section style={{ background: darkBg, padding: '72px 28px' }}>
+      <div style={{ maxWidth: 1180, margin: '0 auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 40 }}>
+          <div>
+            <p style={{ fontSize: 11, fontWeight: 400, color: `${blue}`, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 10, opacity: 0.8 }}>Linea esclusiva</p>
+            <h2 style={{ fontSize: 34, fontWeight: 400, letterSpacing: '-0.025em', color: '#fff', marginBottom: 10, lineHeight: 1.15 }}>Corsetti Luxury</h2>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15, maxWidth: 400, lineHeight: 1.6 }}>Prodotti premium formulati e selezionati dai nostri esperti per il benessere e la bellezza.</p>
+          </div>
+          {/* Arrows */}
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={() => setCurrent(c => Math.max(0, c - 1))} disabled={!canPrev} style={{
+              width: 44, height: 44, borderRadius: '50%',
+              background: canPrev ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.04)',
+              border: `1px solid ${canPrev ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.08)'}`,
+              color: canPrev ? '#fff' : 'rgba(255,255,255,0.3)',
+              cursor: canPrev ? 'pointer' : 'default', fontSize: 16,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s',
+            }}>‹</button>
+            <button onClick={() => setCurrent(c => Math.min(total - visible, c + 1))} disabled={!canNext} style={{
+              width: 44, height: 44, borderRadius: '50%',
+              background: canNext ? blue : 'rgba(255,255,255,0.04)',
+              border: `1px solid ${canNext ? blue : 'rgba(255,255,255,0.08)'}`,
+              color: '#fff', cursor: canNext ? 'pointer' : 'default', fontSize: 16,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: canNext ? `0 4px 16px ${blue}66` : 'none', transition: 'all 0.2s',
+            }}>›</button>
+          </div>
+        </div>
+
+        {/* Product grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : isTablet ? '1fr 1fr' : 'repeat(4, 1fr)', gap: 14, overflow: 'hidden' }}>
+          {LUXURY_PRODUCTS.slice(current, current + visible).map((p, i) => (
+            <div key={current + i} style={{ animation: 'fadeIn 0.35s ease' }}>
+              <div style={{
+                background: '#fff', borderRadius: 16, overflow: 'hidden',
+                marginBottom: 16, aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', transition: 'transform 0.22s',
+              }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'none'}
+              >
+                <img src={p.img} alt={p.name} style={{ width: '85%', height: '85%', objectFit: 'contain' }}
+                  onError={e => {
+                    e.target.style.display = 'none';
+                    e.target.parentNode.style.background = 'rgba(255,255,255,0.08)';
+                  }}
+                />
+              </div>
+              <p style={{ fontSize: 10, fontWeight: 400, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 6 }}>{p.cat}</p>
+              <h3 style={{ fontSize: 16, fontWeight: 400, color: '#fff', marginBottom: 6, lineHeight: 1.3 }}>{p.name}</h3>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', lineHeight: 1.55 }}>{p.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* CTA strip */}
+        <div style={{ marginTop: 48, padding: '28px 32px', background: 'rgba(255,255,255,0.05)', borderRadius: 14, border: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div style={{ fontWeight: 400, fontSize: 16, color: '#fff', marginBottom: 4 }}>Vuoi scoprire tutta la linea Corsetti Luxury?</div>
+            <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>Disponibile in farmacia e su richiesta online.</div>
+          </div>
+          <button style={{
+            background: blue, color: '#fff', border: 'none', cursor: 'pointer',
+            padding: '12px 28px', borderRadius: 9, fontSize: 13.5, fontWeight: 400, fontFamily: 'Noto Sans Display',
+            letterSpacing: '0.04em', textTransform: 'uppercase',
+            boxShadow: `0 4px 18px ${blue}55`,
+          }}>SCOPRI DI PIÙ</button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── CONTACT ──────────────────────────────────────────────────────────────────
+function ContactSection({ blue }) {
+  const { isMobile, isTablet } = useResponsive();
+  const [form, setForm] = useState({ name: '', phone: '', email: '', msg: '' });
+  const [sent, setSent] = useState(false);
+
+  const handleSend = e => {
+    e.preventDefault();
+    setSent(true);
+    setForm({ name: '', phone: '', email: '', msg: '' });
+    setTimeout(() => setSent(false), 3500);
+  };
+
+  return (
+    <section style={{ padding: '72px 28px', background: '#fff' }}>
+      <div style={{ maxWidth: 1180, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 52 }}>
+          <h2 style={{ fontSize: 34, fontWeight: 400, letterSpacing: '-0.025em', color: '#1a2332', marginBottom: 10 }}>Siamo qui per te</h2>
+          <p style={{ color: '#7090a8', fontSize: 16, maxWidth: 400, margin: '0 auto', lineHeight: 1.65 }}>Vieni a trovarci, chiamaci o scrivici: risponderemo il prima possibile.</p>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: isTablet ? '1fr' : '1fr 1fr', gap: 28 }}>
+          {/* Info grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14 }}>
+            {[
+              { icon: '📍', t: 'Sede principale', v: 'Viale dell\'Aeronautica 33\n00144 Roma EUR' },
+              { icon: '📍', t: 'Seconda sede', v: 'Via L. Bodio 77\nRoma' },
+              { icon: '🕐', t: 'Orari', v: 'Lun–Ven: 7:00–21:00\nSab–Dom–Festivi: 8:00–20:00' },
+              { icon: '📞', t: 'Telefono', v: '06 5912956\n06 66483300' },
+            ].map((item, i) => (
+              <div key={i} style={{ background: '#f7fbff', borderRadius: 14, padding: '20px', border: '1px solid #e8f0f8' }}>
+                <div style={{ fontSize: 20, marginBottom: 10 }}>{item.icon}</div>
+                <div style={{ fontSize: 11, fontWeight: 400, color: blue, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 6 }}>{item.t}</div>
+                <div style={{ fontSize: 13.5, color: '#3a5068', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{item.v}</div>
+              </div>
+            ))}
+
+            <div style={{ gridColumn: '1/-1' }}>
+              <a href="https://wa.me/39065912956" style={{
+                background: '#25d366', color: '#fff', textDecoration: 'none', borderRadius: 12,
+                padding: '16px 22px', display: 'flex', alignItems: 'center', gap: 12, fontWeight: 400, fontSize: 14,
+              }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M20.5 3.5A12 12 0 0 0 3.4 18.2L2 22l3.9-1.4A12 12 0 1 0 20.5 3.5zm-8.5 18a10 10 0 0 1-5.2-1.5l-.4-.2-2.3.8.7-2.2-.2-.4A10 10 0 1 1 12 21.5zm5.5-7.6c-.3-.1-1.8-.9-2-1-.3-.1-.5-.2-.7.1-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.4-2.4-1.4-.9-.8-1.5-1.7-1.7-2-.2-.3 0-.5.1-.6l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5-.1-.1-.7-1.7-1-2.3-.2-.6-.5-.5-.7-.5h-.6a1 1 0 0 0-.8.4c-.3.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2 3.1 4.9 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.6.2-1.2.1-1.3l-.7-.2z"/></svg>
+                Scrivici su WhatsApp
+              </a>
+            </div>
+          </div>
+
+          {/* Form */}
+          <div style={{ background: '#f7fbff', borderRadius: 20, padding: '32px', border: '1px solid #e0edf7' }}>
+            <h3 style={{ fontWeight: 400, fontSize: 18, marginBottom: 24, color: '#1a2332' }}>Invia un messaggio</h3>
+            {sent ? (
+              <div style={{ background: '#e8fff4', border: '1.5px solid #22c87c', borderRadius: 12, padding: '28px', textAlign: 'center', color: '#0a8060' }}>
+                <div style={{ fontSize: 28, marginBottom: 8 }}>✓</div>
+                <div style={{ fontWeight: 400, fontSize: 15 }}>Grazie! Ti risponderemo al più presto.</div>
+              </div>
+            ) : (
+              <form onSubmit={handleSend} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  {[{ k: 'name', l: 'Nome', ph: 'Mario Rossi' }, { k: 'phone', l: 'Telefono', ph: '06 000000' }].map(f => (
+                    <div key={f.k}>
+                      <label style={{ fontSize: 12, fontWeight: 400, color: '#4a6070', display: 'block', marginBottom: 5 }}>{f.l}</label>
+                      <input value={form[f.k]} onChange={e => setForm(p => ({...p, [f.k]: e.target.value}))} placeholder={f.ph} style={{ width: '100%', border: '1.5px solid #dce8f2', borderRadius: 8, padding: '9px 12px', fontSize: 13.5, fontFamily: 'Noto Sans Display', outline: 'none', background: '#fff' }} onFocus={e => e.target.style.borderColor = blue} onBlur={e => e.target.style.borderColor = '#dce8f2'} />
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 400, color: '#4a6070', display: 'block', marginBottom: 5 }}>Email</label>
+                  <input required type="email" value={form.email} onChange={e => setForm(p => ({...p, email: e.target.value}))} placeholder="mario@email.it" style={{ width: '100%', border: '1.5px solid #dce8f2', borderRadius: 8, padding: '9px 12px', fontSize: 13.5, fontFamily: 'Noto Sans Display', outline: 'none', background: '#fff' }} onFocus={e => e.target.style.borderColor = blue} onBlur={e => e.target.style.borderColor = '#dce8f2'} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 400, color: '#4a6070', display: 'block', marginBottom: 5 }}>Messaggio</label>
+                  <textarea required rows={4} value={form.msg} onChange={e => setForm(p => ({...p, msg: e.target.value}))} placeholder="Come possiamo aiutarti?" style={{ width: '100%', border: '1.5px solid #dce8f2', borderRadius: 8, padding: '9px 12px', fontSize: 13.5, fontFamily: 'Noto Sans Display', outline: 'none', resize: 'vertical', background: '#fff' }} onFocus={e => e.target.style.borderColor = blue} onBlur={e => e.target.style.borderColor = '#dce8f2'} />
+                </div>
+                <button type="submit" style={{ background: blue, color: '#fff', border: 'none', cursor: 'pointer', padding: '12px', borderRadius: 9, fontSize: 14, fontWeight: 400, fontFamily: 'Noto Sans Display', boxShadow: `0 4px 16px ${blue}44` }}>Invia</button>
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── FOOTER ───────────────────────────────────────────────────────────────────
+function Footer({ blue, setPage }) {
+  const { isMobile, isTablet } = useResponsive();
+  return (
+    <footer style={{ background: '#0d1a28', color: '#6a8090', padding: '44px 28px 24px' }}>
+      <div style={{ maxWidth: 1180, margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : isTablet ? '1fr 1fr 1fr' : '2fr 1fr 1fr 1fr', gap: 28, marginBottom: 36 }}>
+          <div>
+            <img src="corsetti-logo.png" alt="Farmacia Corsetti"
+              style={{ height: 50, objectFit: 'contain', marginBottom: 14, filter: 'brightness(0) invert(1)' }}
+              onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
+            />
+            <span style={{ display: 'none', color: '#fff', fontWeight: 400, fontSize: 16, marginBottom: 14, display: 'block' }}>Farmacia Corsetti</span>
+            <p style={{ fontSize: 13, lineHeight: 1.7, maxWidth: 260 }}>Farmacia di riferimento nel cuore dell'EUR. Aperta 365 giorni l'anno per la tua salute.</p>
+          </div>
+          {[
+            { t: 'Navigazione', ls: [['home','Home'],['telemedicina','Telemedicina'],['prodotti','Corsetti Luxury'],['contatti','Contatti']] },
+            { t: 'Servizi', ls: [['laboratorio','Laboratorio Galenico'],['telemedicina','Diagnostica'],['telemedicina','Dermocosmetica'],['telemedicina','WhatsApp Care']] },
+            { t: 'Contatti', ls: [['','Via dell\'Aeronautica 33'],['','Roma EUR 00144'],['','06 5912956'],['','info@farmaciacorsetti.it']] },
+          ].map((col, i) => (
+            <div key={i}>
+              <h4 style={{ color: '#fff', fontSize: 13, fontWeight: 400, marginBottom: 14, letterSpacing: '0.04em' }}>{col.t}</h4>
+              {col.ls.map(([p, l], j) => (
+                <div key={j} style={{ fontSize: 13, marginBottom: 8, cursor: p ? 'pointer' : 'default' }}
+                  onMouseEnter={e => { if (p) e.currentTarget.style.color = '#fff'; }}
+                  onMouseLeave={e => e.currentTarget.style.color = '#6a8090'}
+                  onClick={() => { if (p) { setPage(p); window.scrollTo(0,0); } }}
+                >{l}</div>
+              ))}
+            </div>
+          ))}
+        </div>
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+          <span style={{ fontSize: 12 }}>© 2025 Farmacia Corsetti S.a.S. del Dott. Pio Corsetti — P.IVA 16286201005</span>
+          <div style={{ display: 'flex', gap: 20, fontSize: 12 }}>
+            {['Privacy Policy', 'Cookie Policy', 'Note legali'].map(l => (
+              <span key={l} style={{ cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.color = '#fff'} onMouseLeave={e => e.currentTarget.style.color = '#6a8090'}>{l}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+// ── TELEMEDICINA PAGE ────────────────────────────────────────────────────────
+function TelemedPage({ blue }) {
+  const { isMobile, isTablet } = useResponsive();
+  const benefits = [
+    { icon: <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="16" stroke={blue} strokeWidth="1.5"/><path d="M12 18l4 4 8-8" stroke={blue} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>, title: 'Nessuna attesa', desc: 'Accedi al servizio in pochi minuti, senza code e senza spostamenti.' },
+    { icon: <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect x="6" y="8" width="24" height="18" rx="3" stroke={blue} strokeWidth="1.5"/><circle cx="18" cy="17" r="4" stroke={blue} strokeWidth="1.5"/><path d="M6 13h4M26 13h4" stroke={blue} strokeWidth="1.5" strokeLinecap="round"/></svg>, title: 'Da casa tua', desc: 'Consulta uno specialista comodamente da qualsiasi dispositivo, ovunque tu sia.' },
+    { icon: <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><path d="M18 4v8M18 24v8M4 18h8M24 18h8" stroke={blue} strokeWidth="1.5" strokeLinecap="round"/><circle cx="18" cy="18" r="6" stroke={blue} strokeWidth="1.5"/></svg>, title: 'Referti rapidi', desc: 'Ricevi i risultati direttamente sul tuo smartphone entro 24 ore.' },
+    { icon: <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><path d="M18 6C11.4 6 6 11.4 6 18s5.4 12 12 12 12-5.4 12-12S24.6 6 18 6z" stroke={blue} strokeWidth="1.5"/><path d="M18 12v6l4 4" stroke={blue} strokeWidth="1.8" strokeLinecap="round"/></svg>, title: 'Disponibile 365 giorni', desc: 'Il servizio è attivo tutto l\'anno, anche nei festivi, con orario continuato.' },
+    { icon: <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="14" cy="12" r="6" stroke={blue} strokeWidth="1.5"/><path d="M6 30c0-5 3.6-8 8-8M22 22l2 2 5-5" stroke={blue} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>, title: 'Specialisti certificati', desc: 'Tutti i medici in rete sono specialisti abilitati con anni di esperienza clinica.' },
+    { icon: <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect x="8" y="6" width="20" height="24" rx="3" stroke={blue} strokeWidth="1.5"/><path d="M13 12h10M13 17h10M13 22h6" stroke={blue} strokeWidth="1.5" strokeLinecap="round"/></svg>, title: 'Documenti digitali', desc: 'Prescrizioni, referti e certificati medici digitali validi e archiviati in sicurezza.' },
+  ];
+
+  const steps = [
+    { n: '01', title: 'Prenota online', desc: 'Scegli il servizio e l\'orario più comodo dal sito o su WhatsApp.' },
+    { n: '02', title: 'Collegati', desc: 'Accedi alla videoconsulta dal tuo smartphone, tablet o PC.' },
+    { n: '03', title: 'Ricevi il referto', desc: 'Diagnosi, prescrizione o referto direttamente sul tuo dispositivo.' },
+    { n: '04', title: 'Segui la terapia', desc: 'Il tuo farmacista è disponibile per follow-up e supporto continuativo.' },
+  ];
+
+  const services = [
+    { icon: '❤️', label: 'Cardiologia', sub: 'ECG · Holter 24h' },
+    { icon: '🩸', label: 'Analisi del sangue', sub: 'Referti in 24h' },
+    { icon: '🫁', label: 'Pneumologia', sub: 'Spirometria' },
+    { icon: '🧠', label: 'Neurologia', sub: 'Consulenza online' },
+    { icon: '🦴', label: 'Ortopedia', sub: 'Visita specialistica' },
+    { icon: '💊', label: 'Medicina generale', sub: 'Prescrizioni · Certificati' },
+  ];
+
+  return (
+    <div>
+      {/* PAGE HERO */}
+      <div style={{ background: 'linear-gradient(160deg, #edf7fa 0%, #e6f4f8 50%, #f2fafb 100%)', padding: isMobile ? '36px 18px 44px' : '64px 28px 72px' }}>
+        <div style={{ maxWidth: 1180, margin: '0 auto', display: 'grid', gridTemplateColumns: isTablet ? '1fr' : '1fr 1fr', gap: isTablet ? 24 : 56, alignItems: 'center' }}>
+          <div>
+            <p style={{ fontSize: 11, color: blue, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 16 }}>Farmacia Corsetti · Servizi digitali</p>
+            <h1 style={{ fontSize: isMobile ? 34 : 46, lineHeight: 1.1, letterSpacing: '-0.03em', color: '#0f1e2d', marginBottom: 8 }}>Telemedicina</h1>
+            <h1 style={{ fontSize: isMobile ? 34 : 46, lineHeight: 1.1, letterSpacing: '-0.03em', fontStyle: 'italic', color: blue, marginBottom: 22 }}>a distanza</h1>
+            <p style={{ fontSize: 16, color: '#4a6070', lineHeight: 1.75, maxWidth: 420, marginBottom: 36 }}>
+              Consulti specialistici, diagnostica avanzata e monitoraggio della salute. Tutto accessibile da casa, con la stessa qualità della farmacia.
+            </p>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button style={{ background: blue, color: '#fff', border: 'none', cursor: 'pointer', padding: '13px 26px', borderRadius: 9, fontSize: 14, fontFamily: 'Noto Sans Display', boxShadow: `0 4px 18px ${blue}44`, display: 'flex', alignItems: 'center', gap: 8 }}>
+                Prenota ora
+                <svg width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M2 7h10M8 3l4 4-4 4" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </button>
+              <button style={{ background: '#fff', color: '#1a2332', border: '1.5px solid rgba(26,126,200,0.2)', cursor: 'pointer', padding: '13px 26px', borderRadius: 9, fontSize: 14, fontFamily: 'Noto Sans Display' }}>
+                Scopri i servizi
+              </button>
+            </div>
+          </div>
+          {/* Node graphic */}
+          {!isTablet && <div style={{ position: 'relative', height: 320, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="400" height="300" viewBox="0 0 400 300" fill="none" style={{ position: 'absolute' }}>
+              <line x1="200" y1="150" x2="80" y2="80" stroke={blue} strokeWidth="1.2" strokeDasharray="5 4" opacity="0.35"/>
+              <line x1="200" y1="150" x2="320" y2="80" stroke={blue} strokeWidth="1.2" strokeDasharray="5 4" opacity="0.35"/>
+              <line x1="200" y1="150" x2="60" y2="220" stroke={blue} strokeWidth="1.2" strokeDasharray="5 4" opacity="0.35"/>
+              <line x1="200" y1="150" x2="340" y2="220" stroke={blue} strokeWidth="1.2" strokeDasharray="5 4" opacity="0.35"/>
+              <line x1="200" y1="150" x2="200" y2="40" stroke={blue} strokeWidth="1.2" strokeDasharray="5 4" opacity="0.35"/>
+              <circle cx="200" cy="150" r="38" fill="#fff" stroke={blue} strokeWidth="1.5"/>
+              <circle cx="200" cy="150" r="28" fill={`${blue}12`}/>
+              {[[80,80],[320,80],[60,220],[340,220],[200,40]].map(([x,y],i) => (
+                <g key={i}><circle cx={x} cy={y} r="18" fill="#fff" stroke={blue} strokeWidth="1.2" opacity="0.8"/><circle cx={x} cy={y} r="6" fill={blue} opacity="0.3"/></g>
+              ))}
+            </svg>
+            <div style={{ position: 'relative', zIndex: 2 }}>
+              <img src="stethoscope.png" alt="Telemedicina" style={{ width: 56, height: 56, objectFit: 'contain' }} />
+            </div>
+            {[
+              { style: { position:'absolute', top: 18, left: 120 }, t: 'ECG', s: '24h' },
+              { style: { position:'absolute', top: 18, right: 60 }, t: 'Video', s: 'consulto' },
+              { style: { position:'absolute', bottom: 30, left: 80 }, t: 'Analisi', s: 'sangue' },
+              { style: { position:'absolute', bottom: 30, right: 30 }, t: 'Referto', s: 'digitale' },
+            ].map((n, i) => (
+              <div key={i} style={{ ...n.style, background: '#fff', borderRadius: 10, padding: '7px 12px', boxShadow: '0 4px 16px rgba(26,126,200,0.12)', border: `1px solid ${blue}18` }}>
+                <div style={{ fontSize: 12, color: '#0f1e2d' }}>{n.t}</div>
+                <div style={{ fontSize: 10, color: '#8aa4b8' }}>{n.s}</div>
+              </div>
+            ))}
+          </div>}
+        </div>
+      </div>
+
+      {/* BENEFITS */}
+      <section style={{ background: '#fff', padding: '72px 28px' }}>
+        <div style={{ maxWidth: 1180, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 52 }}>
+            <p style={{ fontSize: 11, color: blue, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Perché sceglierci</p>
+            <h2 style={{ fontSize: 34, letterSpacing: '-0.025em', color: '#0f1e2d', marginBottom: 12 }}>I vantaggi della telemedicina</h2>
+            <p style={{ color: '#7090a8', fontSize: 15.5, maxWidth: 480, margin: '0 auto', lineHeight: 1.7 }}>Accesso alle cure senza barriere: più veloce, più comodo, ugualmente professionale.</p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : 'repeat(3, 1fr)', gap: 18 }}>
+            {benefits.map((b, i) => (
+              <div key={i} style={{ background: '#f7fbff', borderRadius: 16, padding: '32px 26px', border: '1px solid #e4f0f8', transition: 'all 0.22s', cursor: 'default' }}
+                onMouseEnter={e => { e.currentTarget.style.background='#fff'; e.currentTarget.style.boxShadow=`0 8px 28px ${blue}14`; e.currentTarget.style.borderColor=`${blue}30`; e.currentTarget.style.transform='translateY(-4px)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background='#f7fbff'; e.currentTarget.style.boxShadow='none'; e.currentTarget.style.borderColor='#e4f0f8'; e.currentTarget.style.transform='none'; }}
+              >
+                <div style={{ marginBottom: 18 }}>{b.icon}</div>
+                <h3 style={{ fontSize: 16, color: '#0f1e2d', marginBottom: 9 }}>{b.title}</h3>
+                <p style={{ fontSize: 14, color: '#6a8090', lineHeight: 1.65 }}>{b.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section style={{ background: 'linear-gradient(160deg, #edf7fa 0%, #f2fbfd 100%)', padding: '72px 28px' }}>
+        <div style={{ maxWidth: 1180, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 56 }}>
+            <p style={{ fontSize: 11, color: blue, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Semplice e veloce</p>
+            <h2 style={{ fontSize: 34, letterSpacing: '-0.025em', color: '#0f1e2d', marginBottom: 12 }}>Come funziona</h2>
+            <p style={{ color: '#7090a8', fontSize: 15.5, maxWidth: 440, margin: '0 auto', lineHeight: 1.7 }}>In quattro passi hai accesso a specialisti certificati e referti digitali.</p>
+          </div>
+          <div style={{ position: 'relative' }}>
+            <div style={{ position: 'absolute', top: 28, left: '12.5%', right: '12.5%', height: 1.5, background: `linear-gradient(90deg, ${blue}30, ${blue}60, ${blue}30)` }} />
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : isTablet ? '1fr 1fr' : 'repeat(4, 1fr)', gap: 20, position: 'relative', zIndex: 1 }}>
+              {steps.map((s, i) => (
+                <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: i === 0 ? blue : '#fff', border: `1.5px solid ${i === 0 ? blue : `${blue}40`}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: i === 0 ? '#fff' : blue, marginBottom: 22, boxShadow: i === 0 ? `0 6px 20px ${blue}44` : '0 2px 12px rgba(0,0,0,0.06)' }}>{s.n}</div>
+                  <h3 style={{ fontSize: 15, color: '#0f1e2d', marginBottom: 10 }}>{s.title}</h3>
+                  <p style={{ fontSize: 13.5, color: '#6a8090', lineHeight: 1.65 }}>{s.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SERVICES */}
+      <section style={{ background: '#fff', padding: '72px 28px' }}>
+        <div style={{ maxWidth: 1180, margin: '0 auto', display: 'grid', gridTemplateColumns: isTablet ? '1fr' : '1fr 1fr', gap: 40, alignItems: 'center' }}>
+          <div>
+            <p style={{ fontSize: 11, color: blue, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 14 }}>Specialità disponibili</p>
+            <h2 style={{ fontSize: 32, letterSpacing: '-0.025em', color: '#0f1e2d', marginBottom: 18, lineHeight: 1.2 }}>Tutti i servizi<br />in un'unica piattaforma</h2>
+            <p style={{ fontSize: 15, color: '#6a8090', lineHeight: 1.75, marginBottom: 36 }}>Dalla cardiologia alla medicina generale, i nostri specialisti coprono tutte le principali aree cliniche.</p>
+            <button style={{ background: blue, color: '#fff', border: 'none', cursor: 'pointer', padding: '13px 26px', borderRadius: 9, fontSize: 14, fontFamily: 'Noto Sans Display', boxShadow: `0 4px 18px ${blue}44` }}>Prenota una consulenza</button>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            {services.map((s, i) => (
+              <div key={i} style={{ background: '#f7fbff', borderRadius: 14, padding: '20px 18px', border: '1px solid #e4f0f8', display: 'flex', gap: 14, alignItems: 'flex-start', transition: 'all 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor=`${blue}40`; e.currentTarget.style.background='#fff'; e.currentTarget.style.boxShadow=`0 4px 16px ${blue}12`; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor='#e4f0f8'; e.currentTarget.style.background='#f7fbff'; e.currentTarget.style.boxShadow='none'; }}
+              >
+                <span style={{ fontSize: 22 }}>{s.icon}</span>
+                <div>
+                  <div style={{ fontSize: 14, color: '#0f1e2d', marginBottom: 3 }}>{s.label}</div>
+                  <div style={{ fontSize: 12, color: '#8aa4b8' }}>{s.sub}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <TelemedCards blue={blue} />
+      <HolterFeature blue={blue} />
+
+      {/* CTA */}
+      <section style={{ background: blue, padding: '56px 28px' }}>
+        <div style={{ maxWidth: 780, margin: '0 auto', textAlign: 'center' }}>
+          <h2 style={{ fontSize: 32, color: '#fff', letterSpacing: '-0.025em', marginBottom: 14 }}>Inizia oggi</h2>
+          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 16, lineHeight: 1.7, marginBottom: 32 }}>Prenota la tua prima consulenza in pochi minuti. Nessuna attesa, nessuno spostamento.</p>
+          <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button style={{ background: '#fff', color: blue, border: 'none', cursor: 'pointer', padding: '14px 30px', borderRadius: 9, fontSize: 14, fontFamily: 'Noto Sans Display', boxShadow: '0 4px 20px rgba(0,0,0,0.15)' }}>Prenota ora</button>
+            <button style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1.5px solid rgba(255,255,255,0.35)', cursor: 'pointer', padding: '14px 30px', borderRadius: 9, fontSize: 14, fontFamily: 'Noto Sans Display' }}>📲 WhatsApp</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+// ── EVENTI PAGE ──────────────────────────────────────────────────────────────
+
+// ── LABORATORIO PAGE ─────────────────────────────────────────────────────────
+function LaboratorioPage({ blue }) {
+  const { isMobile, isTablet } = useResponsive();
+  return (
+    <div style={{ maxWidth: 1180, margin: '0 auto', padding: isMobile ? '36px 18px' : '60px 28px' }}>
+      <p style={{ fontSize: 11, fontWeight: 400, color: blue, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Galenica magistrale</p>
+      <h1 style={{ fontSize: 40, fontWeight: 400, letterSpacing: '-0.03em', color: '#1a2332', marginBottom: 16 }}>Laboratorio Galenico</h1>
+      <p style={{ color: '#6a8090', fontSize: 16, maxWidth: 580, lineHeight: 1.7, marginBottom: 48 }}>Preparazioni farmaceutiche personalizzate con ingredienti di altissima qualità e standard certificati.</p>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : 'repeat(3, 1fr)', gap: 18 }}>
+        {[
+          { t: 'Pediatria', d: 'Preparazioni dolci e facilmente somministrabili per i più piccoli, con dosaggi personalizzati.' },
+          { t: 'Veterinaria', d: 'Farmaci su misura per ogni specie animale, in collaborazione con veterinari specialisti.' },
+          { t: 'Oftalmologia', d: 'Collirii, gel e preparazioni oculari di alta precisione, anche in collaborazione con strutture ospedaliere.' },
+          { t: 'Dermocosmetica', d: 'Creme, sieri e trattamenti topici personalizzati su prescrizione dermatologica.' },
+          { t: 'Nutrizione', d: 'Integratori e mix vitaminici formulati su misura per le esigenze individuali.' },
+          { t: 'Oncologia', d: 'Preparazioni galeniche specialistiche a supporto della terapia oncologica.' },
+        ].map((item, i) => (
+          <div key={i} style={{ background: '#fff', borderRadius: 14, padding: '28px 24px', border: '1px solid #e8f0f8' }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: blue, marginBottom: 14 }} />
+            <h3 style={{ fontWeight: 400, fontSize: 16, marginBottom: 10, color: '#1a2332' }}>{item.t}</h3>
+            <p style={{ fontSize: 14, color: '#6a8090', lineHeight: 1.65 }}>{item.d}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── PRODOTTI PAGE ────────────────────────────────────────────────────────────
+function ProdottiPage({ blue, darkBg }) {
+  const { isMobile, isTablet } = useResponsive();
+  return (
+    <div>
+      <div style={{ background: darkBg, padding: '60px 28px' }}>
+        <div style={{ maxWidth: 1180, margin: '0 auto' }}>
+          <p style={{ fontSize: 11, fontWeight: 400, color: blue, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Linea esclusiva</p>
+          <h1 style={{ fontSize: 42, fontWeight: 400, letterSpacing: '-0.03em', color: '#fff', marginBottom: 14 }}>Corsetti Luxury</h1>
+          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 16, maxWidth: 460, lineHeight: 1.65 }}>Prodotti premium formulati e selezionati per il benessere e la bellezza. Disponibili in farmacia.</p>
+        </div>
+      </div>
+      <div style={{ background: darkBg, padding: '0 28px 72px' }}>
+        <div style={{ maxWidth: 1180, margin: '0 auto', display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : isTablet ? '1fr 1fr' : 'repeat(3, 1fr)', gap: 18 }}>
+          {LUXURY_PRODUCTS.concat(LUXURY_PRODUCTS.slice(0,3)).map((p, i) => (
+            <div key={i} style={{ cursor: 'pointer' }}
+              onMouseEnter={e => e.currentTarget.querySelector('.card').style.transform = 'scale(1.03)'}
+              onMouseLeave={e => e.currentTarget.querySelector('.card').style.transform = 'none'}
+            >
+              <div className="card" style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', marginBottom: 16, aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'transform 0.22s' }}>
+                <img src={p.img} alt={p.name} style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
+              </div>
+              <p style={{ fontSize: 10, fontWeight: 400, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 6 }}>{p.cat}</p>
+              <h3 style={{ fontSize: 16, fontWeight: 400, color: '#fff', marginBottom: 6 }}>{p.name}</h3>
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', lineHeight: 1.55 }}>{p.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── APP ──────────────────────────────────────────────────────────────────────
+function App() {
+  const result = useTweaks(TWEAK_DEFAULTS);
+  const tweaks = (result && result.tweaks) ? result.tweaks : TWEAK_DEFAULTS;
+  const blue = tweaks.blue;
+  const darkBg = tweaks.darkBg;
+
+  const [page, setPage] = useState('home');
+  const menuVoci = useMenu();
+
+  const renderPage = () => {
+    switch (page) {
+      case 'home': return (
+        <>
+          <Hero setPage={setPage} blue={blue} />
+          <Tradition blue={blue} />
+          <CorsettiLuxury darkBg={darkBg} blue={blue} />
+          <ContactSection blue={blue} />
+        </>
+      );
+      case 'telemedicina': return <TelemedPage blue={blue} />;
+      case 'prodotti': return <ProdottiPage blue={blue} darkBg={darkBg} />;
+      case 'laboratorio': return <LaboratorioPage blue={blue} />;
+      case 'eventi': window.location.href = '/eventi.php'; return null;
+      case 'test': window.location.href = '/test'; return null;
+      case 'contatti': return (
+        <div style={{ paddingTop: 20 }}>
+          <ContactSection blue={blue} />
+        </div>
+      );
+      default: return (
+        <div style={{ maxWidth: 800, margin: '0 auto', padding: '80px 28px', textAlign: 'center' }}>
+          <div style={{ fontSize: 48, marginBottom: 24 }}>🚧</div>
+          <h1 style={{ fontSize: 28, fontWeight: 400, color: '#1a2332', marginBottom: 16 }}>Pagina in costruzione</h1>
+          <p style={{ color: '#6a8090', fontSize: 16 }}>Questa sezione sarà disponibile a breve.</p>
+        </div>
+      );
+    }
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <Header page={page} setPage={setPage} blue={blue} menuVoci={menuVoci} />
+      <main style={{ flex: 1 }}>{renderPage()}</main>
+      <Footer blue={blue} setPage={setPage} />
+
+      <TweaksPanel defaults={TWEAK_DEFAULTS}>
+        <TweakSection title="Colori">
+          <TweakColor id="blue" label="Azzurro principale" />
+          <TweakColor id="darkBg" label="Sfondo sezione dark" />
+        </TweakSection>
+      </TweaksPanel>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+
+<style>
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+</style>
+</body>
+</html>
